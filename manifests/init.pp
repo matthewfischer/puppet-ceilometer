@@ -31,6 +31,10 @@
 #  [*rabbit_hosts*]
 #    array of host:port (used with HA queues). Optional. Defaults to undef.
 #    If defined, will remove rabbit_host & rabbit_port parameters from config
+#  [*rabbit_ha_queues*]
+#    (optional) forces whether Rabbit HA queues are enabled. if unset it will
+#    default to True if the number of hosts is > 1 and False otherwise. If you
+#    want to override that logic, set this value directly.
 #  [*rabbit_userid*]
 #    user to connect to the rabbit server. Optional. Defaults to 'guest'
 #  [*rabbit_password*]
@@ -67,6 +71,7 @@ class ceilometer(
   $rabbit_host         = '127.0.0.1',
   $rabbit_port         = 5672,
   $rabbit_hosts        = undef,
+  $rabbit_ha_queues    = undef,
   $rabbit_userid       = 'guest',
   $rabbit_password     = '',
   $rabbit_virtual_host = '/',
@@ -140,12 +145,18 @@ class ceilometer(
         value => "${rabbit_host}:${rabbit_port}"
       }
     }
-
+   
+    # if the ha_queues variable is undefined, fall back to host count logic
+    if ($rabbit_ha_queues == undef) {
       if size($rabbit_hosts) > 1 {
         ceilometer_config { 'DEFAULT/rabbit_ha_queues': value => true }
       } else {
         ceilometer_config { 'DEFAULT/rabbit_ha_queues': value => false }
       }
+    }
+    else {
+        ceilometer_config { 'DEFAULT/rabbit_ha_queues': value => $rabbit_ha_queues }
+    }
 
       ceilometer_config {
         'DEFAULT/rabbit_userid'          : value => $rabbit_userid;
