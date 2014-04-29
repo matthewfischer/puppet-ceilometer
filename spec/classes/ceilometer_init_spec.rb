@@ -52,6 +52,19 @@ describe 'ceilometer' do
         it_configures 'a ceilometer base installation'
         it_configures 'rabbit with HA support'
       end
+
+      context 'with HA queues forced enabled' do
+        before { params.merge!( rabbit_params ).merge!( :rabbit_ha_queues=> true ) }
+        it_configures 'a ceilometer base installation'
+        it_configures 'rabbit with HA queues enabled'
+      end
+
+      context 'with HA queues forced disabled' do
+        before { params.merge!( rabbit_params ).merge!( :rabbit_ha_queues=> false ) }
+        it_configures 'a ceilometer base installation'
+        it_configures 'rabbit with HA queues disabled'
+      end
+
     end
 
     context 'with qpid' do
@@ -198,6 +211,14 @@ describe 'ceilometer' do
     it { should contain_ceilometer_config('DEFAULT/rabbit_port').with_ensure('absent') }
     it { should contain_ceilometer_config('DEFAULT/rabbit_hosts').with_value( params[:rabbit_hosts].join(',') ) }
     it { should contain_ceilometer_config('DEFAULT/rabbit_ha_queues').with_value('true') }
+  end
+
+  shared_examples_for 'rabbit with HA queues enabled' do
+    it { should contain_ceilometer_config('DEFAULT/rabbit_ha_queues').with_value('true') }
+  end
+
+  shared_examples_for 'rabbit with HA queues disabled' do
+    it { should contain_ceilometer_config('DEFAULT/rabbit_ha_queues').with_value('false') }
   end
 
   shared_examples_for 'qpid support' do
